@@ -262,23 +262,6 @@
 
         document.getElementById("confidence-bar").style.width =
             probability + "%";
-
-        // AKO PREĐE 90%
-        if (best.probability > 0.90) {
-
-            running = false;
-
-            webcam.stop();
-
-            document.getElementById("status").innerText =
-                "✅ Gotovo! Gljiva prepoznata";
-
-            document.getElementById("startBtn").disabled = false;
-
-            // Glow efekt
-            document.getElementById("webcam-container").style.boxShadow =
-                "0 0 40px rgba(46, 204, 113, 0.9)";
-        }
     }
 
     function stopWebcam() {
