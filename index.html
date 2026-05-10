@@ -2,10 +2,10 @@
 <html lang="hr">
 <head>
     <meta charset="UTF-8">
-    <title>Prepoznavanje gljiva</title>
+    <title>🍄 AI Prepoznavanje Gljiva</title>
 
-    <!-- MOBILE FIX -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1e1e1e">
 
     <link rel="icon" href="ikona.png" type="image/png">
     <link rel="apple-touch-icon" href="ikona.png">
@@ -13,7 +13,8 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #f5f5f5;
+            background: #121212;
+            color: white;
             margin: 0;
             padding: 20px;
 
@@ -24,84 +25,115 @@
 
         h1 {
             margin-bottom: 10px;
+            text-align: center;
         }
 
         .buttons {
             display: flex;
             gap: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         button {
             padding: 12px 25px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 16px;
-            background: #2c3e50;
+            background: #2ecc71;
             color: white;
-
             transition: all 0.2s ease;
         }
 
         button:hover {
-            background: #34495e;
             transform: scale(1.05);
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         #status {
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: bold;
-            color: #333;
-        }
-
-        #warning {
-            color: red;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        /* OKVIR KAMERE */
-        #webcam-container {
-            position: relative;
-            padding: 15px;
-            border-radius: 20px;
-            background: white;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            margin-top: 10px;
-
-            transition: 0.3s;
-        }
-
-        #webcam-container::before {
-            content: "🍄 AI analiza";
-            position: absolute;
-            top: -10px;
-            left: 15px;
-            background: #2c3e50;
-            color: white;
-            padding: 5px 10px;
-            font-size: 12px;
-            border-radius: 8px;
-        }
-
-        #webcam-container canvas {
-            width: 320px !important;
-            height: 320px !important;
-            border-radius: 15px;
-            border: 3px solid #2c3e50;
-            display: block;
-            margin: auto;
-        }
-
-        #label-container {
-            margin-top: 15px;
             text-align: center;
         }
 
-        #label-container div {
-            font-size: 20px;
-            margin: 5px;
+        #warning {
+            color: #ff7675;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        /* CAMERA CARD */
+        #webcam-container {
+            position: relative;
+            padding: 15px;
+            border-radius: 25px;
+            background: #1f1f1f;
+            box-shadow: 0 0 30px rgba(46, 204, 113, 0.2);
+            overflow: hidden;
+            transition: 0.3s;
+        }
+
+        /* CAMERA */
+        #webcam-container canvas {
+            width: 340px !important;
+            height: 340px !important;
+            border-radius: 18px;
+            border: 3px solid #2ecc71;
+            display: block;
+        }
+
+        /* SCAN LINE */
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: rgba(46, 204, 113, 0.8);
+            top: 0;
+            left: 0;
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 20px;
+            }
+            50% {
+                top: 320px;
+            }
+            100% {
+                top: 20px;
+            }
+        }
+
+        /* RESULT */
+        #label-container {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* CONFIDENCE BAR */
+        .confidence-wrapper {
+            width: 320px;
+            height: 25px;
+            background: #2d3436;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .confidence-bar {
+            height: 100%;
+            width: 0%;
+            background: #2ecc71;
+            transition: width 0.3s ease;
         }
 
         @media (max-width: 600px) {
@@ -109,24 +141,38 @@
                 width: 260px !important;
                 height: 260px !important;
             }
+
+            .confidence-wrapper {
+                width: 260px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-<h1>🍄 Koja je to gljiva?</h1>
+<h1>🍄 AI Prepoznavanje Gljiva</h1>
 
 <div class="buttons">
-    <button onclick="init()">▶ Start</button>
+    <button id="startBtn" onclick="init()">▶ Start</button>
     <button onclick="stopWebcam()">⛔ Stop</button>
 </div>
 
 <div id="status">Klikni Start za pokretanje kamere</div>
-<div id="warning">⚠ Ovo je samo za igru – ne koristiti za branje gljiva</div>
 
-<div id="webcam-container"></div>
-<div id="label-container"></div>
+<div id="warning">
+⚠ Ovo nije sigurno za konzumaciju — koristi samo edukativno
+</div>
+
+<div id="webcam-container">
+    <div class="scan-line"></div>
+</div>
+
+<div id="label-container">Čekam kameru...</div>
+
+<div class="confidence-wrapper">
+    <div class="confidence-bar" id="confidence-bar"></div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
@@ -134,11 +180,18 @@
 <script>
     const URL = "https://teachablemachine.withgoogle.com/models/mpYXq1TZg/";
 
-    let model, webcam, labelContainer, maxPredictions;
+    let model, webcam;
     let running = false;
 
     async function init() {
-        document.getElementById("status").innerText = "Učitavanje modela...";
+
+        document.getElementById("startBtn").disabled = true;
+
+        document.getElementById("status").innerText =
+            "Učitavanje AI modela...";
+
+        document.getElementById("webcam-container").style.boxShadow =
+            "0 0 30px rgba(46, 204, 113, 0.2)";
 
         running = true;
 
@@ -146,64 +199,100 @@
         const metadataURL = URL + "metadata.json";
 
         model = await tmImage.load(modelURL, metadataURL);
-        maxPredictions = model.getTotalClasses();
 
-        webcam = new tmImage.Webcam(320, 320, true);
+        webcam = new tmImage.Webcam(340, 340, true);
 
         await webcam.setup({ facingMode: "environment" });
         await webcam.play();
 
-        window.requestAnimationFrame(loop);
+        document.getElementById("webcam-container").innerHTML =
+            '<div class="scan-line"></div>';
 
-        document.getElementById("webcam-container").innerHTML = "";
         document.getElementById("webcam-container").appendChild(webcam.canvas);
 
-        labelContainer = document.getElementById("label-container");
-        labelContainer.innerHTML = "";
+        document.getElementById("status").innerText =
+            "AI analiza aktivna ✔";
 
-        for (let i = 0; i < maxPredictions; i++) {
-            labelContainer.appendChild(document.createElement("div"));
-        }
-
-        document.getElementById("status").innerText = "Kamera radi ✔";
+        window.requestAnimationFrame(loop);
     }
 
     async function loop() {
+
         if (!running) return;
 
         webcam.update();
+
         await predict();
+
         window.requestAnimationFrame(loop);
     }
 
     async function predict() {
+
         const prediction = await model.predict(webcam.canvas);
 
-        // TOP RESULT ONLY
         let best = prediction.reduce((a, b) =>
             a.probability > b.probability ? a : b
         );
 
-        labelContainer.innerHTML =
-            best.className + " - " + (best.probability * 100).toFixed(0) + "%";
+        const probability = (best.probability * 100).toFixed(0);
 
-        if (best.probability > 0.9) {
-            labelContainer.style.color = "#2ecc71";
-            labelContainer.style.fontWeight = "bold";
-        } else {
-            labelContainer.style.color = "#555";
-            labelContainer.style.fontWeight = "normal";
+        // Ako AI nije siguran
+        if (best.probability < 0.2) {
+
+            document.getElementById("label-container").innerHTML =
+                "🤔 Nisam siguran što je ovo";
+
+            document.getElementById("confidence-bar").style.width = "0%";
+
+            return;
+        }
+
+        // Prikaz rezultata
+        document.getElementById("label-container").innerHTML =
+            `${best.className} - ${probability}%`;
+
+        document.getElementById("confidence-bar").style.width =
+            probability + "%";
+
+        // AKO PREĐE 90%
+        if (best.probability > 0.90) {
+
+            running = false;
+
+            webcam.stop();
+
+            document.getElementById("status").innerText =
+                "✅ Gotovo! Gljiva prepoznata";
+
+            document.getElementById("startBtn").disabled = false;
+
+            // Glow efekt
+            document.getElementById("webcam-container").style.boxShadow =
+                "0 0 40px rgba(46, 204, 113, 0.9)";
         }
     }
 
     function stopWebcam() {
+
         running = false;
 
         if (webcam) {
             webcam.stop();
-            document.getElementById("webcam-container").innerHTML = "";
-            document.getElementById("status").innerText = "Kamera ugašena ⛔";
         }
+
+        document.getElementById("webcam-container").innerHTML =
+            '<div class="scan-line"></div>';
+
+        document.getElementById("label-container").innerHTML =
+            "Kamera ugašena ⛔";
+
+        document.getElementById("confidence-bar").style.width = "0%";
+
+        document.getElementById("status").innerText =
+            "Kamera zaustavljena";
+
+        document.getElementById("startBtn").disabled = false;
     }
 </script>
 
