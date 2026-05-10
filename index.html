@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>Prepoznavanje gljiva</title>
 
+    <!-- MOBILE FIX -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <link rel="icon" href="ikona.png" type="image/png">
     <link rel="apple-touch-icon" href="ikona.png">
 
@@ -20,10 +23,9 @@
         }
 
         h1 {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
-        /* TIPKE */
         .buttons {
             display: flex;
             gap: 10px;
@@ -38,7 +40,8 @@
             font-size: 16px;
             background: #2c3e50;
             color: white;
-            transition: 0.2s;
+
+            transition: all 0.2s ease;
         }
 
         button:hover {
@@ -46,11 +49,16 @@
             transform: scale(1.05);
         }
 
-        /* STATUS */
         #status {
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             font-weight: bold;
             color: #333;
+        }
+
+        #warning {
+            color: red;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
 
         /* OKVIR KAMERE */
@@ -61,11 +69,12 @@
             background: white;
             box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             margin-top: 10px;
+
+            transition: 0.3s;
         }
 
-        /* NASLOV OKVIRA */
         #webcam-container::before {
-            content: "🔍 Skener";
+            content: "🍄 AI analiza";
             position: absolute;
             top: -10px;
             left: 15px;
@@ -76,7 +85,6 @@
             border-radius: 8px;
         }
 
-        /* KAMERA */
         #webcam-container canvas {
             width: 320px !important;
             height: 320px !important;
@@ -86,7 +94,6 @@
             margin: auto;
         }
 
-        /* REZULTATI */
         #label-container {
             margin-top: 15px;
             text-align: center;
@@ -95,6 +102,13 @@
         #label-container div {
             font-size: 20px;
             margin: 5px;
+        }
+
+        @media (max-width: 600px) {
+            #webcam-container canvas {
+                width: 260px !important;
+                height: 260px !important;
+            }
         }
     </style>
 </head>
@@ -109,6 +123,7 @@
 </div>
 
 <div id="status">Klikni Start za pokretanje kamere</div>
+<div id="warning">⚠ Ovo je samo za igru – ne koristiti za branje gljiva</div>
 
 <div id="webcam-container"></div>
 <div id="label-container"></div>
@@ -120,9 +135,12 @@
     const URL = "https://teachablemachine.withgoogle.com/models/mpYXq1TZg/";
 
     let model, webcam, labelContainer, maxPredictions;
+    let running = false;
 
     async function init() {
         document.getElementById("status").innerText = "Učitavanje modela...";
+
+        running = true;
 
         const modelURL = URL + "model.json";
         const metadataURL = URL + "metadata.json";
@@ -151,6 +169,8 @@
     }
 
     async function loop() {
+        if (!running) return;
+
         webcam.update();
         await predict();
         window.requestAnimationFrame(loop);
@@ -159,27 +179,26 @@
     async function predict() {
         const prediction = await model.predict(webcam.canvas);
 
-        for (let i = 0; i < maxPredictions; i++) {
+        // TOP RESULT ONLY
+        let best = prediction.reduce((a, b) =>
+            a.probability > b.probability ? a : b
+        );
 
-            const probability = (prediction[i].probability * 100).toFixed(0);
+        labelContainer.innerHTML =
+            best.className + " - " + (best.probability * 100).toFixed(0) + "%";
 
-            const text =
-                prediction[i].className + ": " + probability + "%";
-
-            const element = labelContainer.childNodes[i];
-            element.innerHTML = text;
-
-            if (probability > 90) {
-                element.style.color = "#2ecc71";
-                element.style.fontWeight = "bold";
-            } else {
-                element.style.color = "#555";
-                element.style.fontWeight = "normal";
-            }
+        if (best.probability > 0.9) {
+            labelContainer.style.color = "#2ecc71";
+            labelContainer.style.fontWeight = "bold";
+        } else {
+            labelContainer.style.color = "#555";
+            labelContainer.style.fontWeight = "normal";
         }
     }
 
     function stopWebcam() {
+        running = false;
+
         if (webcam) {
             webcam.stop();
             document.getElementById("webcam-container").innerHTML = "";
