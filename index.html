@@ -2,7 +2,7 @@
 <html lang="hr">
 <head>
     <meta charset="UTF-8">
-    <title>🍄 ML model za prepoznavanje gljiva</title>
+    <title>🍄 ML Model za prepoznavanje gljiva</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#1e1e1e">
@@ -21,6 +21,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+
+            min-height: 100vh;
+            box-sizing: border-box;
         }
 
         h1 {
@@ -56,16 +59,9 @@
         }
 
         #status {
-            margin-bottom: 8px;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        #warning {
-            color: #ff7675;
-            font-weight: bold;
-            text-align: center;
             margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
         }
 
         /* CAMERA CARD */
@@ -136,6 +132,22 @@
             transition: width 0.3s ease;
         }
 
+        /* FOOTER WARNING */
+        #footer-warning {
+            margin-top: auto;
+            padding-top: 40px;
+            max-width: 500px;
+
+            font-size: 13px;
+            line-height: 1.6;
+
+            text-align: center;
+
+            color: #b2bec3;
+
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
         @media (max-width: 600px) {
             #webcam-container canvas {
                 width: 260px !important;
@@ -151,7 +163,7 @@
 
 <body>
 
-<h1>🍄 ML model za prepoznavanje gljiva</h1>
+<h1>🍄 ML Model za prepoznavanje gljiva</h1>
 
 <div class="buttons">
     <button id="startBtn" onclick="init()">▶ Start</button>
@@ -159,10 +171,6 @@
 </div>
 
 <div id="status">Klikni Start za pokretanje kamere</div>
-
-<div id="warning">
-⚠ Ovo nije sigurno za konzumaciju — koristi samo edukativno
-</div>
 
 <div id="webcam-container">
     <div class="scan-line"></div>
@@ -188,7 +196,7 @@
         document.getElementById("startBtn").disabled = true;
 
         document.getElementById("status").innerText =
-            "Učitavanje AI modela...";
+            "Učitavanje ML modela...";
 
         document.getElementById("webcam-container").style.boxShadow =
             "0 0 30px rgba(46, 204, 113, 0.2)";
@@ -211,7 +219,7 @@
         document.getElementById("webcam-container").appendChild(webcam.canvas);
 
         document.getElementById("status").innerText =
-            "AI analiza aktivna ✔";
+            "ML analiza aktivna ✔";
 
         window.requestAnimationFrame(loop);
     }
@@ -237,7 +245,7 @@
 
         const probability = (best.probability * 100).toFixed(0);
 
-        // Ako AI nije siguran
+        // Ako ML model nije siguran
         if (best.probability < 0.2) {
 
             document.getElementById("label-container").innerHTML =
@@ -295,6 +303,12 @@
         document.getElementById("startBtn").disabled = false;
     }
 </script>
+
+<div id="footer-warning">
+⚠ Ova aplikacija služi isključivo u edukativne svrhe.
+Rezultati ML modela nisu 100% točni i ne smiju se koristiti
+za određivanje jestivosti gljiva.
+</div>
 
 </body>
 </html>
