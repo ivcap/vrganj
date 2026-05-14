@@ -2,7 +2,7 @@
 <html lang="hr">
 <head>
     <meta charset="UTF-8">
-    <title>Mushroom ID • ML Model</title>
+    <title>Mushroom ID • ML Detector</title>
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -39,6 +39,7 @@
         
         .mushroom-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
         .mushroom-tags span { background: var(--neutral-btn); color: #3A3A3C; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 1px solid rgba(0,0,0,0.03); }
+        
         .update-note { font-size: 11px; color: var(--secondary-text); margin-top: 15px; font-style: italic; }
 
         .main-card {
@@ -67,8 +68,6 @@
         button { padding: 18px; border: none; border-radius: 18px; font-size: 17px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; width: 100%; -webkit-tap-highlight-color: transparent; }
         #startBtn { background-color: var(--accent); color: white; }
         .btn-stop { background-color: var(--neutral-btn); color: var(--accent); }
-        button:active { transform: scale(0.97); opacity: 0.85; }
-        button:disabled { background-color: #E5E5EA; color: #AEAEB2; }
 
         .scan-line { position: absolute; width: 100%; height: 60px; background: linear-gradient(180deg, transparent, rgba(0, 122, 255, 0.1), transparent); top: -60px; z-index: 10; animation: scan 4s linear infinite; }
         @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
@@ -101,14 +100,13 @@
         <span>šarene gnojištarke</span>
         <span>sunčanice</span>
         <span>smrčke</span>
+        <span>blagve</span>
     </div>
-    <p class="update-note">*Model se kontinuirano nadograđuje.</p>
+    <p class="update-note">* Model se kontinuirano nadograđuje novim uzorcima.</p>
 </div>
 
 <div class="main-card">
-    <div id="webcam-container">
-        <div class="scan-line"></div>
-    </div>
+    <div id="webcam-container"><div class="scan-line"></div></div>
     <div id="label-container"></div>
     <div class="confidence-wrapper"><div class="confidence-bar" id="confidence-bar"></div></div>
     <div class="buttons">
@@ -119,27 +117,23 @@
 
 <div class="footer">
     <div id="footer-warning">
-        Aplikacija koristi strojno učenje (ML). Rezultati su informativni.<br> 
-        <strong>Nikada ne konzumirajte gljive na temelju ML prepoznavanja.</strong>
+        Aplikacija koristi strojno učenje (AI). Rezultati su informativni.<br> 
+        <strong>Nikada ne konzumirajte gljive na temelju AI prepoznavanja.</strong>
     </div>
 
     <div class="install-instructions">
-        <div class="instruction-item">
-            <strong>iPhone:</strong> Klikni <span class="icon">⎋</span> (dolje u sredini) pa <strong>"Add to Home Screen"</strong>
-        </div>
-        <div class="instruction-item">
-            <strong>Android:</strong> Klikni <span class="icon">⋮</span> (gore desno) pa <strong>"Add to Home screen"</strong>
-        </div>
+        <div class="instruction-item"><strong>iPhone:</strong> Klikni <span class="icon">⎋</span> pa <strong>"Add to Home Screen"</strong></div>
+        <div class="instruction-item"><strong>Android:</strong> Klikni <span class="icon">⋮</span> pa <strong>"Install app"</strong></div>
     </div>
 
-    <div class="version-tag">Verzija 2.0</div>
+    <div class="version-tag">Verzija 2.2.1</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
 
 <script>
-    const URL = "https://teachablemachine.withgoogle.com/models/ZyHFU_w-i/";
+    const URL = "https://teachablemachine.withgoogle.com/models/5_FhV_6Gt/";
     let model, webcam, running = false;
 
     async function init() {
@@ -169,7 +163,13 @@
         const probability = (best.probability * 100).toFixed(0);
         const labelDiv = document.getElementById("label-container");
         const bar = document.getElementById("confidence-bar");
-        if (best.probability < 0.25) { labelDiv.innerHTML = "Tražim..."; bar.style.width = "5%"; return; }
+
+        if (best.probability < 0.35 || best.className === "Nije gljiva") { 
+            labelDiv.innerHTML = "Tražim..."; 
+            bar.style.width = "5%"; 
+            return; 
+        }
+
         labelDiv.innerHTML = `${best.className} <span class="percentage-span">• ${probability}%</span>`;
         bar.style.width = probability + "%";
     }
