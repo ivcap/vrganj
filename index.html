@@ -17,11 +17,9 @@
             color: white;
             margin: 0;
             padding: 20px;
-
             display: flex;
             flex-direction: column;
             align-items: center;
-
             min-height: 100vh;
             box-sizing: border-box;
         }
@@ -64,7 +62,6 @@
             text-align: center;
         }
 
-        /* CAMERA CARD */
         #webcam-container {
             position: relative;
             padding: 15px;
@@ -75,7 +72,6 @@
             transition: 0.3s;
         }
 
-        /* CAMERA */
         #webcam-container canvas {
             width: 340px !important;
             height: 340px !important;
@@ -84,7 +80,6 @@
             display: block;
         }
 
-        /* SCAN LINE */
         .scan-line {
             position: absolute;
             width: 100%;
@@ -96,26 +91,19 @@
         }
 
         @keyframes scan {
-            0% {
-                top: 20px;
-            }
-            50% {
-                top: 320px;
-            }
-            100% {
-                top: 20px;
-            }
+            0% { top: 20px; }
+            50% { top: 320px; }
+            100% { top: 20px; }
         }
 
-        /* RESULT */
         #label-container {
             margin-top: 20px;
             text-align: center;
             font-size: 24px;
             font-weight: bold;
+            min-height: 30px;
         }
 
-        /* CONFIDENCE BAR */
         .confidence-wrapper {
             width: 320px;
             height: 25px;
@@ -129,22 +117,17 @@
             height: 100%;
             width: 0%;
             background: #2ecc71;
-            transition: width 0.3s ease;
+            transition: width 0.3s ease, background 0.3s ease;
         }
 
-        /* FOOTER WARNING */
         #footer-warning {
             margin-top: auto;
             padding-top: 40px;
             max-width: 500px;
-
             font-size: 13px;
             line-height: 1.6;
-
             text-align: center;
-
             color: #b2bec3;
-
             border-top: 1px solid rgba(255,255,255,0.1);
         }
 
@@ -153,7 +136,6 @@
                 width: 260px !important;
                 height: 260px !important;
             }
-
             .confidence-wrapper {
                 width: 260px;
             }
@@ -192,51 +174,40 @@
     let running = false;
 
     async function init() {
-
         document.getElementById("startBtn").disabled = true;
+        document.getElementById("status").innerText = "Učitavanje ML modela...";
 
-        document.getElementById("status").innerText =
-            "Učitavanje ML modela...";
+        try {
+            running = true;
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
 
-        document.getElementById("webcam-container").style.boxShadow =
-            "0 0 30px rgba(46, 204, 113, 0.2)";
+            model = await tmImage.load(modelURL, metadataURL);
+            webcam = new tmImage.Webcam(340, 340, true);
 
-        running = true;
+            await webcam.setup({ facingMode: "environment" });
+            await webcam.play();
 
-        const modelURL = URL + "model.json";
-        const metadataURL = URL + "metadata.json";
+            document.getElementById("webcam-container").innerHTML = '<div class="scan-line"></div>';
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+            document.getElementById("status").innerText = "ML analiza aktivna ✔";
 
-        model = await tmImage.load(modelURL, metadataURL);
-
-        webcam = new tmImage.Webcam(340, 340, true);
-
-        await webcam.setup({ facingMode: "environment" });
-        await webcam.play();
-
-        document.getElementById("webcam-container").innerHTML =
-            '<div class="scan-line"></div>';
-
-        document.getElementById("webcam-container").appendChild(webcam.canvas);
-
-        document.getElementById("status").innerText =
-            "ML analiza aktivna ✔";
-
-        window.requestAnimationFrame(loop);
+            window.requestAnimationFrame(loop);
+        } catch (e) {
+            console.error(e);
+            document.getElementById("status").innerText = "Greška pri pokretanju kamere ❌";
+            document.getElementById("startBtn").disabled = false;
+        }
     }
 
     async function loop() {
-
         if (!running) return;
-
         webcam.update();
-
         await predict();
-
         window.requestAnimationFrame(loop);
     }
 
     async function predict() {
-
         const prediction = await model.predict(webcam.canvas);
 
         let best = prediction.reduce((a, b) =>
@@ -244,45 +215,48 @@
         );
 
         const probability = (best.probability * 100).toFixed(0);
+        const labelEl = document.getElementById("label-container");
+        const barEl = document.getElementById("confidence-bar");
 
-        // Ako ML model nije siguran
-        if (best.probability < 0.2) {
-
-            document.getElementById("label-container").innerHTML =
-                "🤔 Nisam siguran što je ovo";
-
-            document.getElementById("confidence-bar").style.width = "0%";
-
+        // 1. Ako je model nesiguran (ispod 30%)
+        if (best.probability < 0.3) {
+            labelEl.innerHTML = "🔍 Tražim gljivu...";
+            barEl.style.width = "5%";
+            barEl.style.background = "#636e72"; 
             return;
         }
 
-        // Prikaz rezultata
-        document.getElementById("label-container").innerHTML =
-            `${best.className} - ${probability}%`;
+        // 2. Posebna logika za klasu "razno"
+        if (best.className.toLowerCase() === "razno") {
+            
+            if (best.probability > 0.80) {
+                // Ako je siguran preko 80%, onda je to neka druga gljiva
+                labelEl.innerHTML = "🍄 Druga vrsta gljive";
+                barEl.style.background = "#3498db"; // Plava
+            } else {
+                // Između 30% i 80% za "razno" vjerojatno nije gljiva
+                labelEl.innerHTML = "❌ Nije prepoznata gljiva";
+                barEl.style.background = "#95a5a6"; // Siva
+            }
 
-        document.getElementById("confidence-bar").style.width =
-            probability + "%";
+        } else {
+            // 3. Rezultat za specifične gljive koje je model naučio
+            labelEl.innerHTML = `${best.className} - ${probability}%`;
+            barEl.style.background = "#2ecc71"; // Zelena
+        }
+
+        barEl.style.width = probability + "%";
     }
 
     function stopWebcam() {
-
         running = false;
-
         if (webcam) {
             webcam.stop();
         }
-
-        document.getElementById("webcam-container").innerHTML =
-            '<div class="scan-line"></div>';
-
-        document.getElementById("label-container").innerHTML =
-            "Kamera ugašena ⛔";
-
+        document.getElementById("webcam-container").innerHTML = '<div class="scan-line"></div>';
+        document.getElementById("label-container").innerHTML = "Kamera ugašena ⛔";
         document.getElementById("confidence-bar").style.width = "0%";
-
-        document.getElementById("status").innerText =
-            "Kamera zaustavljena";
-
+        document.getElementById("status").innerText = "Kamera zaustavljena";
         document.getElementById("startBtn").disabled = false;
     }
 </script>
