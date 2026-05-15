@@ -1,191 +1,200 @@
 <!DOCTYPE html>
 <html lang="hr">
 <head>
-    <meta charset="UTF-8">
-    <title>Mushroom ID • ML Model</title>
-    
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Mushroom ID">
-    
-    <link rel="icon" href="ikona.png" type="image/png">
-    <link rel="apple-touch-icon" href="ikona.png">
-    
-    <style>
-        :root {
-            --accent: #007AFF; 
-            --bg: #FBFBFD;    
-            --card: #FFFFFF;
-            --text: #1D1D1F;
-            --secondary-text: #86868B;
-            --neutral-btn: #F5F5F7;
-        }
+    <meta charset="UTF-8">
+    <title>Mushroom ID • ML Model</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mushroom ID">
+    
+    <link rel="icon" href="ikona.png" type="image/png">
+    <link rel="apple-touch-icon" href="ikona.png">
+    
+    <style>
+        :root {
+            --accent: #007AFF; 
+            --success: #34C759;
+            --bg: #FBFBFD;    
+            --card: #FFFFFF;
+            --text: #1D1D1F;
+            --secondary-text: #86868B;
+            --neutral-btn: #F5F5F7;
+        }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
-        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
 
-        .header-section { margin: 50px 0 10px 0; text-align: center; }
-        h1 { font-weight: 600; font-size: 34px; margin: 0; letter-spacing: -1px; }
+        .header-section { margin: 50px 0 10px 0; text-align: center; }
+        h1 { font-weight: 600; font-size: 34px; margin: 0; letter-spacing: -1px; }
 
-        .info-container { margin-bottom: 35px; text-align: center; width: 90%; max-width: 400px; }
-        .info-label { font-size: 13px; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 15px; }
-        
-        .mushroom-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-        .mushroom-tags span { background: var(--neutral-btn); color: #3A3A3C; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 1px solid rgba(0,0,0,0.03); }
-        
-        .update-note { font-size: 11px; color: var(--secondary-text); margin-top: 15px; font-style: italic; }
+        .info-container { margin-bottom: 35px; text-align: center; width: 90%; max-width: 400px; }
+        .info-label { font-size: 13px; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 15px; }
+        
+        .mushroom-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+        .mushroom-tags span { background: var(--neutral-btn); color: #3A3A3C; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 1px solid rgba(0,0,0,0.03); }
+        
+        .update-note { font-size: 11px; color: var(--secondary-text); margin-top: 15px; font-style: italic; }
 
-        .main-card {
-            background: var(--card);
-            border-radius: 38px;
-            padding: 24px;
-            width: 85%;
-            max-width: 380px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.04);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border: 1px solid rgba(0,0,0,0.02);
-        }
+        .main-card {
+            background: var(--card);
+            border-radius: 38px;
+            padding: 24px;
+            width: 85%;
+            max-width: 380px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid rgba(0,0,0,0.02);
+        }
 
-        #webcam-container { position: relative; width: 100%; aspect-ratio: 1/1; border-radius: 28px; overflow: hidden; background: #000; }
-        #webcam-container canvas { width: 100% !important; height: 100% !important; object-fit: cover; }
+        #webcam-container { position: relative; width: 100%; aspect-ratio: 1/1; border-radius: 28px; overflow: hidden; background: #000; }
+        #webcam-container canvas { width: 100% !important; height: 100% !important; object-fit: cover; }
 
-        #label-container { margin-top: 25px; font-size: 22px; font-weight: 600; min-height: 28px; display: flex; align-items: center; justify-content: center; }
-        .percentage-span { color: var(--secondary-text); font-weight: 400; font-size: 18px; margin-left: 8px; }
+        #label-container { margin-top: 25px; font-size: 22px; font-weight: 600; min-height: 28px; display: flex; align-items: center; justify-content: center; }
+        .percentage-span { color: var(--secondary-text); font-weight: 400; font-size: 18px; margin-left: 8px; }
 
-        .confidence-wrapper { width: 100%; height: 6px; background: var(--neutral-btn); border-radius: 10px; margin-top: 15px; overflow: hidden; }
-        .confidence-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .confidence-wrapper { width: 100%; height: 6px; background: var(--neutral-btn); border-radius: 10px; margin-top: 15px; overflow: hidden; }
+        .confidence-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease; }
 
-        .buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; margin-top: 30px; }
-        button { padding: 18px; border: none; border-radius: 18px; font-size: 17px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; width: 100%; -webkit-tap-highlight-color: transparent; }
-        #startBtn { background-color: var(--accent); color: white; }
-        .btn-stop { background-color: var(--neutral-btn); color: var(--accent); }
+        .buttons { display: flex; flex-direction: column; gap: 12px; width: 100%; margin-top: 30px; }
+        button { padding: 18px; border: none; border-radius: 18px; font-size: 17px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; width: 100%; -webkit-tap-highlight-color: transparent; }
+        #startBtn { background-color: var(--accent); color: white; }
+        .btn-stop { background-color: var(--neutral-btn); color: var(--accent); }
 
-        .scan-line { position: absolute; width: 100%; height: 60px; background: linear-gradient(180deg, transparent, rgba(0, 122, 255, 0.1), transparent); top: -60px; z-index: 10; animation: scan 4s linear infinite; }
-        @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
+        .scan-line { position: absolute; width: 100%; height: 60px; background: linear-gradient(180deg, transparent, rgba(0, 122, 255, 0.1), transparent); top: -60px; z-index: 10; animation: scan 4s linear infinite; }
+        @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
 
-        .footer { margin-top: auto; padding: 40px 30px; text-align: center; width: 85%; max-width: 380px; }
-        #footer-warning { font-size: 11px; color: var(--secondary-text); line-height: 1.5; margin-bottom: 20px; }
-        
-        .install-instructions { margin-bottom: 25px; text-align: center; background: var(--neutral-btn); padding: 12px; border-radius: 15px; width: 100%; box-sizing: border-box; }
-        .instruction-item { font-size: 11px; color: var(--secondary-text); margin: 5px 0; line-height: 1.4; }
-        .instruction-item strong { color: var(--accent); }
-        .icon { font-size: 14px; font-weight: bold; display: inline-block; padding: 0 2px; }
-        
-        .version-tag { font-size: 10px; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; }
-    </style>
+        .footer { margin-top: auto; padding: 40px 30px; text-align: center; width: 85%; max-width: 380px; }
+        #footer-warning { font-size: 11px; color: var(--secondary-text); line-height: 1.5; margin-bottom: 20px; }
+        
+        .install-instructions { margin-bottom: 25px; text-align: center; background: var(--neutral-btn); padding: 12px; border-radius: 15px; width: 100%; box-sizing: border-box; }
+        .instruction-item { font-size: 11px; color: var(--secondary-text); margin: 5px 0; line-height: 1.4; }
+        .instruction-item strong { color: var(--accent); }
+        .icon { font-size: 14px; font-weight: bold; display: inline-block; padding: 0 2px; }
+        
+        .version-tag { font-size: 10px; color: var(--secondary-text); text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; }
+    </style>
 </head>
 <body>
 
 <div class="header-section">
-    <h1>Mushroom ID</h1>
+    <h1>Mushroom ID</h1>
 </div>
 
 <div class="info-container">
-    <p class="info-label">Trenutno prepoznajem:</p>
-    <div class="mushroom-tags">
-        <span>vrganje</span>
-        <span>puhare</span>
-        <span>capice</span>
-        <span>muhare</span>
-        <span>crne trube</span>
-        <span>šarene gnojištarke</span>
-        <span>sunčanice</span>
-        <span>velike polipovke</span>
-        <span>smrčke</span>
-        <span>blagve*</span>
-    </div>
-    <p class="update-note">* Model se kontinuirano nadograđuje.</p>
+    <p class="info-label">Trenutno prepoznajem:</p>
+    <div class="mushroom-tags">
+        <span>vrganje</span>
+        <span>puhare</span>
+        <span>capice</span>
+        <span>muhare</span>
+        <span>crne trube</span>
+        <span>šarene gnojištarke</span>
+        <span>sunčanice</span>
+        <span>velike polipovke</span>
+        <span>smrčke</span>
+        <span>blagve*</span>
+    </div>
+    <p class="update-note">* Model se kontinuirano nadograđuje.</p>
 </div>
 
 <div class="main-card">
-    <div id="webcam-container"><div class="scan-line"></div></div>
-    <div id="label-container"></div>
-    <div class="confidence-wrapper"><div class="confidence-bar" id="confidence-bar"></div></div>
-    <div class="buttons">
-        <button id="startBtn" onclick="init()">Pokreni kameru</button>
-        <button class="btn-stop" onclick="stopWebcam()">Zaustavi kameru</button>
-    </div>
+    <div id="webcam-container"><div class="scan-line"></div></div>
+    <div id="label-container"></div>
+    <div class="confidence-wrapper"><div class="confidence-bar" id="confidence-bar"></div></div>
+    <div class="buttons">
+        <button id="startBtn" onclick="init()">Pokreni kameru</button>
+        <button class="btn-stop" onclick="stopWebcam()">Zaustavi kameru</button>
+    </div>
 </div>
 
 <div class="footer">
-    <div id="footer-warning">
-        Aplikacija koristi strojno učenje (ML). Rezultati su informativni.<br> 
-        <strong>Nikada ne konzumirajte gljive na temelju ML prepoznavanja.</strong>
-    </div>
+    <div id="footer-warning">
+        Aplikacija koristi strojno učenje (ML). Rezultati su informativni.<br> 
+        <strong>Nikada ne konzumirajte gljive na temelju ML prepoznavanja.</strong>
+    </div>
 
-    <div class="install-instructions">
-        <div class="instruction-item"><strong>iPhone:</strong> Klikni <span class="icon">⎋</span> pa <strong>"Add to Home Screen"</strong></div>
-        <div class="instruction-item"><strong>Android:</strong> Klikni <span class="icon">⋮</span> pa <strong>"Add to Home Screen"</strong></div>
-    </div>
+    <div class="install-instructions">
+        <div class="instruction-item"><strong>iPhone:</strong> Klikni <span class="icon">⎋</span> pa <strong>"Add to Home Screen"</strong></div>
+        <div class="instruction-item"><strong>Android:</strong> Klikni <span class="icon">⋮</span> pa <strong>"Add to Home Screen"</strong></div>
+    </div>
 
-    <div class="version-tag">Verzija 2.2.2</div>
+    <div class="version-tag">Verzija 2.2.4</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
 
 <script>
-    const URL = "https://teachablemachine.withgoogle.com/models/e5LpLDfeF/";
-    let model, webcam, running = false;
+    const URL = "https://teachablemachine.withgoogle.com/models/e5LpLDfeF/";
+    let model, webcam, running = false;
 
-    async function init() {
-        const startBtn = document.getElementById("startBtn");
-        startBtn.disabled = true; startBtn.innerText = "Učitavam...";
-        running = true;
-        try {
-            model = await tmImage.load(URL + "model.json", URL + "metadata.json");
-            webcam = new tmImage.Webcam(340, 340, true); 
-            await webcam.setup({ facingMode: "environment" }); 
-            await webcam.play();
-            document.getElementById("webcam-container").innerHTML = '<div class="scan-line"></div>';
-            document.getElementById("webcam-container").appendChild(webcam.canvas);
-            startBtn.innerText = "Kamera aktivna";
-            window.requestAnimationFrame(loop);
-        } catch (e) {
-            alert("Provjerite dopuštenja za kameru.");
-            startBtn.disabled = false; startBtn.innerText = "Pokreni kameru";
-        }
-    }
+    async function init() {
+        const startBtn = document.getElementById("startBtn");
+        startBtn.disabled = true; startBtn.innerText = "Učitavam...";
+        running = true;
+        try {
+            model = await tmImage.load(URL + "model.json", URL + "metadata.json");
+            webcam = new tmImage.Webcam(340, 340, true); 
+            await webcam.setup({ facingMode: "environment" }); 
+            await webcam.play();
+            document.getElementById("webcam-container").innerHTML = '<div class="scan-line"></div>';
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+            startBtn.innerText = "Kamera aktivna";
+            window.requestAnimationFrame(loop);
+        } catch (e) {
+            alert("Provjerite dopuštenja za kameru.");
+            startBtn.disabled = false; startBtn.innerText = "Pokreni kameru";
+        }
+    }
 
-    async function loop() { if (!running) return; webcam.update(); await predict(); window.requestAnimationFrame(loop); }
+    async function loop() { if (!running) return; webcam.update(); await predict(); window.requestAnimationFrame(loop); }
 
-    async function predict() {
-        const prediction = await model.predict(webcam.canvas);
-        let best = prediction.reduce((a, b) => a.probability > b.probability ? a : b);
-        const probability = (best.probability * 100).toFixed(0);
-        const labelDiv = document.getElementById("label-container");
-        const bar = document.getElementById("confidence-bar");
+    async function predict() {
+        const prediction = await model.predict(webcam.canvas);
+        let best = prediction.reduce((a, b) => a.probability > b.probability ? a : b);
+        const probability = (best.probability * 100).toFixed(0);
+        const labelDiv = document.getElementById("label-container");
+        const bar = document.getElementById("confidence-bar");
 
-        if (best.probability < 0.35 || best.className === "Nije gljiva") { 
-            labelDiv.innerHTML = "Tražim..."; 
-            bar.style.width = "5%"; 
-            return; 
-        }
+        if (best.probability < 0.35 || best.className === "Nije gljiva") { 
+            labelDiv.innerHTML = "Tražim..."; 
+            bar.style.width = "5%"; 
+            bar.style.backgroundColor = "var(--accent)";
+            return; 
+        }
 
-        labelDiv.innerHTML = `${best.className} <span class="percentage-span">• ${probability}%</span>`;
-        bar.style.width = probability + "%";
-    }
+        labelDiv.innerHTML = `${best.className} <span class="percentage-span">• ${probability}%</span>`;
+        bar.style.width = probability + "%";
 
-    function stopWebcam() {
-        running = false; if (webcam) webcam.stop();
-        document.getElementById("webcam-container").innerHTML = '<div class="scan-line"></div>';
-        document.getElementById("label-container").innerHTML = "";
-        document.getElementById("confidence-bar").style.width = "0%";
-        const startBtn = document.getElementById("startBtn");
-        startBtn.disabled = false; startBtn.innerText = "Pokreni kameru";
-    }
+        // Vizualni feedback bez zvuka
+        if (probability >= 99) {
+            bar.style.backgroundColor = "var(--success)";
+        } else {
+            bar.style.backgroundColor = "var(--accent)";
+        }
+    }
+
+    function stopWebcam() {
+        running = false; if (webcam) webcam.stop();
+        document.getElementById("webcam-container").innerHTML = '<div class="scan-line"></div>';
+        document.getElementById("label-container").innerHTML = "";
+        document.getElementById("confidence-bar").style.width = "0%";
+        const startBtn = document.getElementById("startBtn");
+        startBtn.disabled = false; startBtn.innerText = "Pokreni kameru";
+    }
 </script>
 </body>
-</html>   
+</html>
