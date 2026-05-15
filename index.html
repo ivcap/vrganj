@@ -114,7 +114,7 @@
     <div id="label-container"></div>
     <div class="confidence-wrapper"><div class="confidence-bar" id="confidence-bar"></div></div>
     <div class="buttons">
-        <button id="startBtn" onclick="init()">Pokreni kameru</button>
+        <button id="startBtn" onclick="handleStartBtn()">Pokreni kameru</button>
         <button class="btn-stop" onclick="stopWebcam()">Zaustavi kameru</button>
     </div>
 </div>
@@ -130,7 +130,7 @@
         <div class="instruction-item"><strong>Android:</strong> Klikni <span class="icon">⋮</span> pa <strong>"Add to Home Screen"</strong></div>
     </div>
 
-    <div class="version-tag">Verzija 2.2.4</div>
+    <div class="version-tag">Verzija 2.2.5</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
@@ -138,12 +138,22 @@
 
 <script>
     const URL = "https://teachablemachine.withgoogle.com/models/sGz6Lmpk8/";
-    let model, webcam, running = false;
+    let model, webcam, running = false, isPaused = false;
+
+    // Funkcija koja odlučuje hoće li init ili samo maknuti pauzu
+    async function handleStartBtn() {
+        if (!running) {
+            await init();
+        } else if (isPaused) {
+            resumeScanning();
+        }
+    }
 
     async function init() {
         const startBtn = document.getElementById("startBtn");
         startBtn.disabled = true; startBtn.innerText = "Učitavam...";
         running = true;
+        isPaused = false;
         try {
             model = await tmImage.load(URL + "model.json", URL + "metadata.json");
             webcam = new tmImage.Webcam(340, 340, true); 
@@ -156,10 +166,16 @@
         } catch (e) {
             alert("Provjerite dopuštenja za kameru.");
             startBtn.disabled = false; startBtn.innerText = "Pokreni kameru";
+            running = false;
         }
     }
 
-    async function loop() { if (!running) return; webcam.update(); await predict(); window.requestAnimationFrame(loop); }
+    async function loop() { 
+        if (!running || isPaused) return; 
+        webcam.update(); 
+        await predict(); 
+        window.requestAnimationFrame(loop); 
+    }
 
     async function predict() {
         const prediction = await model.predict(webcam.canvas);
@@ -167,7 +183,9 @@
         const probability = (best.probability * 100).toFixed(0);
         const labelDiv = document.getElementById("label-container");
         const bar = document.getElementById("confidence-bar");
+        const startBtn = document.getElementById("startBtn");
 
+        // Ako je vjerojatnost niska ili nije gljiva
         if (best.probability < 0.35 || best.className === "Nije gljiva") { 
             labelDiv.innerHTML = "Tražim..."; 
             bar.style.width = "5%"; 
@@ -178,21 +196,42 @@
         labelDiv.innerHTML = `${best.className} <span class="percentage-span">• ${probability}%</span>`;
         bar.style.width = probability + "%";
 
-        // Vizualni feedback bez zvuka
-        if (probability >= 99) {
+        // FREEZE FRAME LOGIKA
+        if (probability >= 95 && best.className !== "Nije gljiva") {
+            isPaused = true; 
             bar.style.backgroundColor = "var(--success)";
+            labelDiv.innerHTML = `✓ ${best.className} <span class="percentage-span">• ${probability}%</span>`;
+            
+            startBtn.disabled = false;
+            startBtn.innerText = "Nastavi skeniranje";
+            startBtn.style.backgroundColor = "var(--success)";
+            
+            if (navigator.vibrate) navigator.vibrate(100); 
         } else {
             bar.style.backgroundColor = "var(--accent)";
         }
     }
 
+    function resumeScanning() {
+        isPaused = false;
+        const startBtn = document.getElementById("startBtn");
+        startBtn.innerText = "Kamera aktivna";
+        startBtn.disabled = true;
+        startBtn.style.backgroundColor = "var(--accent)";
+        window.requestAnimationFrame(loop);
+    }
+
     function stopWebcam() {
-        running = false; if (webcam) webcam.stop();
+        running = false;
+        isPaused = false;
+        if (webcam) webcam.stop();
         document.getElementById("webcam-container").innerHTML = '<div class="scan-line"></div>';
         document.getElementById("label-container").innerHTML = "";
         document.getElementById("confidence-bar").style.width = "0%";
         const startBtn = document.getElementById("startBtn");
-        startBtn.disabled = false; startBtn.innerText = "Pokreni kameru";
+        startBtn.disabled = false; 
+        startBtn.innerText = "Pokreni kameru";
+        startBtn.style.backgroundColor = "var(--accent)";
     }
 </script>
 </body>
